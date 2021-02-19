@@ -1,0 +1,212 @@
+#+TITLE: Opamp1
+* Misura della curva di trasferimento VTC per un amplificatore invertente
+
+[[./circuito_vtc.png]]
+
+** calcolare l'amplificazione attesa $A=\frac{R_{2}}{R_{1}}$
+#+begin_src python :session a :results output
+r1 = 8.1e3
+rf = 67.9e3
+Ath = rf/r1
+print("Valore di A atteso", Ath)
+#+end_src
+
+#+RESULTS:
+: Valore di A atteso 8.382716049382717
+** applicare in ingesso una tensione sinusoidale di $f=1 kHz$ e $V_{pp} = 0.2 V$
+** misurare $V_{in}$ e $V_{out}$ aumentando progressivamente l'ampiezza di uscita fino alla saturazione
+#+begin_src python :session a :results output
+import pandas as pd
+import numpy as np
+data_vtc = pd.read_csv('data_vtc.csv', delimiter='\t')
+print(data_vtc)
+#+end_src
+
+#+RESULTS:
+:    Vin+ mv  Vout- mv  Vin- mv  Vout+ mv  scala Vin mv  scala Vout mv
+: 0    87.89    -729.2   -101.0       829           500           1000
+: 1   425.50   -3800.0   -469.1      3967           500           5000
+: 2   912.10   -7625.0   -931.1      7862          1000          10000
+: 3  1178.00  -10120.0  -1230.0     10360          2000          20000
+: 4  1373.00  -10830.0  -1406.0     11450          2000          20000
+: 5  1558.00  -10830.0  -1610.0     11500          2000          20000
+: 6  1857.00  -10830.0  -1905.0     11400          2000          20000
+
+*** Isolo i massimi in un nuovo set, e i minimi in un altro
+**** Calcolo gli errori associati alle misure
+$\sigma = \sqrt{(0.56 \; \Delta_{scala} x)^{2} + (0.56 \; \Delta_{lettura} \; digit)^{2}}$
+- $\Delta_{scala}$ e' dato dal costruttore e vale $0.03$
+- $\Delta_{digit}$ e' dato da $\frac{1}{2^{8}} \; scala$, dove $8$ e' la risoluzione dell'oscilloscopio
+#+begin_src python :session a :results output
+vtc_cols = list(data_vtc.columns.values)
+TRIANG = 0.56
+SCALA = 0.03
+data_vtc['errVin+'] = ( (SCALA * TRIANG * data_vtc['Vin+ mv'])**2 + (TRIANG * 2/256 * data_vtc['scala Vin mv'])**2 )**(1/2)
+data_vtc['errVin-'] = ( (SCALA * TRIANG * data_vtc['Vin- mv'])**2 + (TRIANG * 2/256 * data_vtc['scala Vin mv'])**2 )**(1/2)
+data_vtc['errVout+'] = ( (SCALA * TRIANG * data_vtc['Vout+ mv'])**2 + (TRIANG * 2/256 * data_vtc['scala Vout mv'])**2 )**(1/2)
+data_vtc['errVout-'] = ( (SCALA * TRIANG * data_vtc['Vout- mv'])**2 + (TRIANG * 2/256 * data_vtc['scala Vout mv'])**2 )**(1/2)
+print(data_vtc)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+   Vin+ mv  Vout- mv  Vin- mv  Vout+ mv  ...    errVin+    errVin-    errVout+    errVout-
+0    87.89    -729.2   -101.0       829  ...   2.639197   2.768445   14.598203   13.008338
+1   425.50   -3800.0   -469.1      3967  ...   7.475612   8.178840   70.143792   67.483785
+2   912.10   -7625.0   -931.1      7862  ...  15.935606  16.242777  139.138821  135.364960
+3  1178.00  -10120.0  -1230.0     10360  ...  21.638448  22.440218  194.804919  191.211114
+4  1373.00  -10830.0  -1406.0     11450  ...  24.670251  25.189377  211.325861  201.890736
+5  1558.00  -10830.0  -1610.0     11500  ...  27.598219  28.428099  212.090759  201.890736
+6  1857.00  -10830.0  -1905.0     11400  ...  32.401431  33.178585  210.561536  201.890736
+
+[7 rows x 10 columns]
+#+end_example
+**** Isolo i massimi e minimi
+#+begin_src python :session a :results output
+max_vtc = data_vtc[["Vin+ mv", "Vout+ mv", "errVin+", "errVout+"]]
+min_vtc = data_vtc[["Vin- mv", "Vout- mv", "errVin-", "errVout-"]]
+print(max_vtc)
+print(min_vtc)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+   Vin+ mv  Vout+ mv    errVin+    errVout+
+0    87.89       829   2.639197   14.598203
+1   425.50      3967   7.475612   70.143792
+2   912.10      7862  15.935606  139.138821
+3  1178.00     10360  21.638448  194.804919
+4  1373.00     11450  24.670251  211.325861
+5  1558.00     11500  27.598219  212.090759
+6  1857.00     11400  32.401431  210.561536
+   Vin- mv  Vout- mv    errVin-    errVout-
+0   -101.0    -729.2   2.768445   13.008338
+1   -469.1   -3800.0   8.178840   67.483785
+2   -931.1   -7625.0  16.242777  135.364960
+3  -1230.0  -10120.0  22.440218  191.211114
+4  -1406.0  -10830.0  25.189377  201.890736
+5  -1610.0  -10830.0  28.428099  201.890736
+6  -1905.0  -10830.0  33.178585  201.890736
+#+end_example
+**** Controllo gli errori relativi per verificare siano sensati
+- Errori relativi dei massimi
+ #+begin_src python :session a :results output
+print(data_vtc["errVin+"]/ data_vtc["Vin+ mv"]*100)
+print(data_vtc["errVout+"]/data_vtc["Vout+ mv"]*100)
+
+ #+end_src
+
+ #+RESULTS:
+ #+begin_example
+ 0    3.002841
+ 1    1.756901
+ 2    1.747134
+ 3    1.836880
+ 4    1.796814
+ 5    1.771388
+ 6    1.744827
+ dtype: float64
+ 0    1.760941
+ 1    1.768182
+ 2    1.769764
+ 3    1.880356
+ 4    1.845641
+ 5    1.844267
+ 6    1.847031
+ dtype: float64
+ #+end_example
+
+- Errori relativi dei minimi
+ #+begin_src python :session a :results output
+print(abs(data_vtc["errVin-"]/ data_vtc["Vin- mv"]*100))
+print(abs(data_vtc["errVout-"]/data_vtc["Vout- mv"]*100))
+
+ #+end_src
+
+ #+RESULTS:
+ #+begin_example
+ 0    2.741034
+ 1    1.743517
+ 2    1.744472
+ 3    1.824408
+ 4    1.791563
+ 5    1.765720
+ 6    1.741658
+ dtype: float64
+ 0    1.783919
+ 1    1.775889
+ 2    1.775278
+ 3    1.889438
+ 4    1.864180
+ 5    1.864180
+ 6    1.864180
+ dtype: float64
+ #+end_example
+*** Riporto i risultati in un grafico e faccio un fit
+**** Plot con massimo e minimi assieme
+#+begin_src python :session a :results file
+import matplotlib
+matplotlib.use('Agg')
+import matplotlib.pyplot as plt
+plt1 =max_vtc.plot.scatter(x="Vin+ mv", y="Vout+ mv")
+min_vtc.plot.scatter(x="Vin- mv", y="Vout- mv", ax=plt1)
+plt.savefig("p1.png")
+"p1.png"
+#+end_src
+
+#+RESULTS:
+[[file:p1.png]]
+**** Reietto i dati affetti dalla saturazine dell'amplificatore
+#+begin_src python :session a :results output
+max_vtcR = max_vtc.drop(max_vtc.index[[6,5,4]])
+min_vtcR = min_vtc.drop(max_vtc.index[[6,5,4]])
+print(max_vtcR)
+print(min_vtcR)
+#+end_src
+
+#+RESULTS:
+#+begin_example
+   Vin+ mv  Vout+ mv    errVin+    errVout+
+0    87.89       829   2.639197   14.598203
+1   425.50      3967   7.475612   70.143792
+2   912.10      7862  15.935606  139.138821
+3  1178.00     10360  21.638448  194.804919
+   Vin- mv  Vout- mv    errVin-    errVout-
+0   -101.0    -729.2   2.768445   13.008338
+1   -469.1   -3800.0   8.178840   67.483785
+2   -931.1   -7625.0  16.242777  135.364960
+3  -1230.0  -10120.0  22.440218  191.211114
+#+end_example
+**** Plotto un grafico con solo i minimi e solo i massimi
+Infatti a priori non posso sapere se sono compatibili i due dataset
+#+begin_src python :session a :results output
+import statsmodels.api as sm
+# creates subplots
+fig, axes = plt.subplots(ncols=2)
+fig.set_figwidth(8)
+fig.set_figheight(4)
+plt.subplots_adjust(wspace=0.2, hspace=0.5)
+
+# creates fits
+x = sm.add_constant(max_vtcR["Vin+ mv"])
+model = sm.OLS(x, max_vtcR["Vout+ mv"]).fit()
+print(model.params)
+
+#+end_src
+
+#+RESULTS:
+:                  0       1
+: Vout+ mv  0.000124  0.1139
+
+#+begin_src python :session a :results file
+max_vtcR.plot.scatter(x="Vin+ mv", y="Vout+ mv", xerr="errVin+",
+                      yerr="errVout+", ax=axes[0])
+min_vtcR.plot.scatter(x="Vin- mv", y="Vout- mv", xerr="errVin-",
+                      yerr="errVout-", ax=axes[1])
+
+plt.savefig("p2.png")
+"p2.png"
+#+end_src
+
+#+RESULTS:
+[[file:p2.png]]
