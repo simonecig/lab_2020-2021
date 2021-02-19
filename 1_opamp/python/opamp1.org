@@ -1,4 +1,8 @@
 #+TITLE: Opamp1
+#+STARTUP: latexpreview
+#+OPTIONS: tex:t
+Note that this document is meant to be viewed *ONLY* with Emacs Org-Mode.
+
 * Misura della curva di trasferimento VTC per un amplificatore invertente
 
 [[./circuito_vtc.png]]
@@ -13,8 +17,11 @@ print("Valore di A atteso", Ath)
 
 #+RESULTS:
 : Valore di A atteso 8.382716049382717
+
 ** applicare in ingesso una tensione sinusoidale di $f=1 kHz$ e $V_{pp} = 0.2 V$
+
 ** misurare $V_{in}$ e $V_{out}$ aumentando progressivamente l'ampiezza di uscita fino alla saturazione
+
 #+begin_src python :session a :results output
 import pandas as pd
 import numpy as np
@@ -33,6 +40,7 @@ print(data_vtc)
 : 6  1857.00  -10830.0  -1905.0     11400          2000          20000
 
 *** Isolo i massimi in un nuovo set, e i minimi in un altro
+
 **** Calcolo gli errori associati alle misure
 $\sigma = \sqrt{(0.56 \; \Delta_{scala} x)^{2} + (0.56 \; \Delta_{lettura} \; digit)^{2}}$
 - $\Delta_{scala}$ e' dato dal costruttore e vale $0.03$
@@ -49,19 +57,17 @@ print(data_vtc)
 #+end_src
 
 #+RESULTS:
-#+begin_example
-   Vin+ mv  Vout- mv  Vin- mv  Vout+ mv  ...    errVin+    errVin-    errVout+    errVout-
-0    87.89    -729.2   -101.0       829  ...   2.639197   2.768445   14.598203   13.008338
-1   425.50   -3800.0   -469.1      3967  ...   7.475612   8.178840   70.143792   67.483785
-2   912.10   -7625.0   -931.1      7862  ...  15.935606  16.242777  139.138821  135.364960
-3  1178.00  -10120.0  -1230.0     10360  ...  21.638448  22.440218  194.804919  191.211114
-4  1373.00  -10830.0  -1406.0     11450  ...  24.670251  25.189377  211.325861  201.890736
-5  1558.00  -10830.0  -1610.0     11500  ...  27.598219  28.428099  212.090759  201.890736
-6  1857.00  -10830.0  -1905.0     11400  ...  32.401431  33.178585  210.561536  201.890736
+:    Vin+ mv  Vout- mv  Vin- mv  Vout+ mv  scala Vin mv  scala Vout mv    errVin+    errVin-    errVout+    errVout-
+: 0    87.89    -729.2   -101.0       829           500           1000   2.639197   2.768445   14.598203   13.008338
+: 1   425.50   -3800.0   -469.1      3967           500           5000   7.475612   8.178840   70.143792   67.483785
+: 2   912.10   -7625.0   -931.1      7862          1000          10000  15.935606  16.242777  139.138821  135.364960
+: 3  1178.00  -10120.0  -1230.0     10360          2000          20000  21.638448  22.440218  194.804919  191.211114
+: 4  1373.00  -10830.0  -1406.0     11450          2000          20000  24.670251  25.189377  211.325861  201.890736
+: 5  1558.00  -10830.0  -1610.0     11500          2000          20000  27.598219  28.428099  212.090759  201.890736
+: 6  1857.00  -10830.0  -1905.0     11400          2000          20000  32.401431  33.178585  210.561536  201.890736
 
-[7 rows x 10 columns]
-#+end_example
 **** Isolo i massimi e minimi
+
 #+begin_src python :session a :results output
 max_vtc = data_vtc[["Vin+ mv", "Vout+ mv", "errVin+", "errVout+"]]
 min_vtc = data_vtc[["Vin- mv", "Vout- mv", "errVin-", "errVout-"]]
@@ -88,6 +94,7 @@ print(min_vtc)
 5  -1610.0  -10830.0  28.428099  201.890736
 6  -1905.0  -10830.0  33.178585  201.890736
 #+end_example
+
 **** Controllo gli errori relativi per verificare siano sensati
 - Errori relativi dei massimi
  #+begin_src python :session a :results output
@@ -142,7 +149,9 @@ print(abs(data_vtc["errVout-"]/data_vtc["Vout- mv"]*100))
  6    1.864180
  dtype: float64
  #+end_example
+
 *** Riporto i risultati in un grafico e faccio un fit
+
 **** Plot con massimo e minimi assieme
 #+begin_src python :session a :results file
 import matplotlib
@@ -156,7 +165,9 @@ plt.savefig("p1.png")
 
 #+RESULTS:
 [[file:p1.png]]
+
 **** Reietto i dati affetti dalla saturazine dell'amplificatore
+
 #+begin_src python :session a :results output
 max_vtcR = max_vtc.drop(max_vtc.index[[6,5,4]])
 min_vtcR = min_vtc.drop(max_vtc.index[[6,5,4]])
@@ -177,36 +188,77 @@ print(min_vtcR)
 2   -931.1   -7625.0  16.242777  135.364960
 3  -1230.0  -10120.0  22.440218  191.211114
 #+end_example
+
 **** Plotto un grafico con solo i minimi e solo i massimi
+
 Infatti a priori non posso sapere se sono compatibili i due dataset
-#+begin_src python :session a :results output
-import statsmodels.api as sm
+
+#+begin_src python :session a :results file
+from scipy.optimize import curve_fit
 # creates subplots
 fig, axes = plt.subplots(ncols=2)
 fig.set_figwidth(8)
 fig.set_figheight(4)
 plt.subplots_adjust(wspace=0.2, hspace=0.5)
-
-# creates fits
-x = sm.add_constant(max_vtcR["Vin+ mv"])
-model = sm.OLS(x, max_vtcR["Vout+ mv"]).fit()
-print(model.params)
-
-#+end_src
-
-#+RESULTS:
-:                  0       1
-: Vout+ mv  0.000124  0.1139
-
-#+begin_src python :session a :results file
 max_vtcR.plot.scatter(x="Vin+ mv", y="Vout+ mv", xerr="errVin+",
                       yerr="errVout+", ax=axes[0])
 min_vtcR.plot.scatter(x="Vin- mv", y="Vout- mv", xerr="errVin-",
                       yerr="errVout-", ax=axes[1])
+def func(x, m, q):
+    return m*x+q
+# creates fits
+
+# max
+X = max_vtcR["Vin+ mv"]
+Y = max_vtcR["Vout+ mv"]
+max_fit,max_cov = curve_fit(func, X,Y)
+axes[0].plot(X, func(X,*max_fit), 'g--')
+
+# min
+X = min_vtcR["Vin- mv"]
+Y = min_vtcR["Vout- mv"]
+min_fit,min_cov = curve_fit(func, X,Y)
+axes[1].plot(X, func(X,*min_fit), 'g--')
 
 plt.savefig("p2.png")
 "p2.png"
+
 #+end_src
 
 #+RESULTS:
 [[file:p2.png]]
+
+Stampo i risultati del fit
+
+#+begin_src python :session a :results output
+max_m = max_fit[0];
+max_q = max_fit[1];
+max_m_err = np.sqrt(max_cov[0][0])
+max_q_err = np.sqrt(max_cov[1][1])
+
+min_m = min_fit[0];
+min_q = min_fit[1];
+min_m_err = np.sqrt(min_cov[0][0])
+min_q_err = np.sqrt(min_cov[1][1])
+print("----Massimi----\n m", max_m, "\t", max_m_err,
+      "\n q", max_q, "\t", max_q_err)
+print("----Minimi----\n m", min_m, "\t", min_m_err,
+      "\n q", min_q, "\t", min_q_err)
+
+#+end_src
+
+#+RESULTS:
+: ----Massimi----
+:  m 8.620980755904693 	 0.19444305902830464
+:  q 143.34070103527125 	 150.87784148348754
+: ----Minimi----
+:  m 8.312282978680418 	 0.009558161772004406
+:  q 107.07681814977138 	 7.720994465835843
+
+Controllo la compatibilita' dei due fit
+
+#+begin_src python :session a :results output
+comp_mm = abs(max_m - min_m)/np.sqrt((max_m_err)**2 + (min_m_err)**2)
+#+end_src
+
+#+RESULTS:
