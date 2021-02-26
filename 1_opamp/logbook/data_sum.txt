@@ -1,0 +1,4 @@
+Vin	scalaVin	Vin2	scalaVin2	Vout	scalaVout
+1.848	2	5.095	10	-6.941	10
+-1.838	2	5.095	10	-3.249	10
+0	2	5.095	10	-5.07	10
