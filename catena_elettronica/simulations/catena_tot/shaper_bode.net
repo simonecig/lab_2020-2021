@@ -1,0 +1,21 @@
+* Z:\home\ciga\uni\lab\catena_elettronica\simulations\catena_tot\shaper_bode.asc
+V1 V+ 0 +12
+V2 V- 0 -12
+XU1 N008 N005 V+ V- N005 level.2 Avol=1Meg GBW=10Meg Slew=10Meg ilimit=25m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=500Meg
+R1 N008 0 100.2k
+R2 N007 N005 100.1k
+C1 N007 0 0.103n
+C2 N008 N002 0.102n
+XU2 N007 N003 V+ V- N004 level.2 Avol=1Meg GBW=10Meg Slew=10Meg ilimit=25m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=500Meg
+R1a N003 0 32.8k
+R2a N004 N003 188.5k
+XU3 0 N001 V+ V- N002 level.2 Avol=1Meg GBW=10Meg Slew=10Meg ilimit=25m rail=0 Vos=0 phimargin=45 en=0 enk=0 in=0 ink=0 Rin=500Meg
+V3 N006 0 SINE(0 1 1k 0 0 0) AC 1 0
+Rf_pre N002 N001 816k
+Rin N001 N006 82k
+Cf_pre N002 N001 0.189n
+R3 N008 N002 1570k
+.ac dec 9000u 10 1000k
+.lib UniversalOpamps2.sub
+.backanno
+.end

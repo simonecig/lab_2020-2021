@@ -1,0 +1,21 @@
+Circuit: * Z:\home\ciga\uni\lab\catena_elettronica\simulations\preamp\linearity_preamp.asc
+
+Direct Newton iteration for .op point succeeded.
+
+Date: Sun Mar 07 16:15:42 2021
+Total elapsed time: 0.054 seconds.
+
+tnom = 27
+temp = 27
+method = modified trap
+totiter = 2303
+traniter = 2300
+tranpoints = 1151
+accept = 1126
+rejected = 25
+matrix size = 10
+fillins = 1
+solver = Normal
+Matrix Compiler1: 400 bytes object code size  0.8/0.7/[0.6]
+Matrix Compiler2: 808 bytes object code size  0.7/0.8/[0.6]
+

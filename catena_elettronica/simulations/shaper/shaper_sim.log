@@ -1,0 +1,23 @@
+Circuit: * Z:\home\ciga\uni\lab\catena_elettronica\simulations\shaper\shaper_sim.asc
+
+WARNING: Specified period is not longer than the sum of Trise, Tfall, and Ton for vg2.  Increasing period to 100
+Limiting fall time of source vg2 to 1.98952e-014
+Direct Newton iteration for .op point succeeded.
+
+Date: Mon Mar 08 18:40:18 2021
+Total elapsed time: 0.034 seconds.
+
+tnom = 27
+temp = 27
+method = modified trap
+totiter = 2123
+traniter = 2120
+tranpoints = 1058
+accept = 1052
+rejected = 6
+matrix size = 8
+fillins = 3
+solver = Normal
+Matrix Compiler1: 776 bytes object code size  0.5/0.4/[0.4]
+Matrix Compiler2: 710 bytes object code size  0.4/0.4/[0.4]
+

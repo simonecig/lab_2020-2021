@@ -1,0 +1,90 @@
+\documentclass[a4paper,11pt]{article}
+\input{../imports/imports}
+
+\usepackage{circuitikz}
+
+\begin{document}
+
+\input{../titlepage/titlepage}
+
+	%------------------------------------------------
+	%	Obiettivi
+	%------------------------------------------------
+\section{Obiettivi}
+In questa esperienza ci si propone di realizzare una versione semplificata di
+una catena elettronica per un rilevatore di radiazione, costituita da un
+preamplificatore, uno shaper e un amplificatore non invertente.
+In particolare, si studia la linearità e le risposta in frequenza
+dei componenti presi singolarmente, oltre che della catena completa.
+\begin{figure}[h]
+\centering
+    \begin{circuitikz}[scale=0.7, transform shape, use fpu reciprocal]
+      % preamp
+      % BOX
+      \draw[black, dashed] (-1,-3) rectangle (6,4.5)
+        (0.5,-3) node[above]{Preamplificatore};
+      \draw(0,2) node[above,font=\boldmath]{$V_{in}$};
+      \draw(0,0) node[ground]{}
+      (0,2) to[american voltage source,l=$V_{gen}$,font=\boldmath] (0,0) % Generator
+      (0,2) to[R,l=$R_{1}$,font=\boldmath] (2,2) % R1
+      to[R,l_=$R_f$,font=\boldmath] (5.5,2) % R_f
+      to[short] (5.5,3.5)
+      to[C,C=$C_f$,font=\boldmath] (2,3.5) % C_f
+      to[short] (2,0);
+      \draw(4,-0.5) node[op amp] (OA1){$OA_{1}$} % OPAMP1
+      (OA1.-)-- (2,0)
+      (OA1.+)-- (2,-1)
+      (2,-1) to (2,-2) node[ground]{} % OPAMP1 ground
+      (OA1.out)-- (5.5,-0.5)
+      (5.5,-0.5)-- (5.5,2);
+      % shaper
+      % BOX
+      \draw[black, dashed] (6.5,-3) rectangle (16.8,4.5)
+        (8.2,-3) node[above]{Shaper $CR-RC$};
+      \draw(5.5,1) to (7,1)
+        (7,1) to[C,l_=$C_{sh1}$,font=\boldmath] (9,1)
+          (7,1)-- (7,2.5) to[R,l_=$R_{pz}$,font=\boldmath] (9,2.5)-- (9,1)
+          (9,1)-- (10,1) to[R,l_=$R_{sh1}$,font=\boldmath] (10,-1) to (10,-1) node[ground]{};
+      \draw(12,1.5) node[op amp] (OA2){$OA_{2}$}
+        (OA2.+)-- (9,1)
+        (OA2.-)-- (10.5,2)-- (10.5,3.5)-- (13.5,3.5)-- (13.5,1.5)
+        (OA2.out)-- (14,1.5) to[R,l=$R_{sh2}$,font=\boldmath] (15.5,1.5)-- (16,1.5)
+          (16,1.5) to[C,l_=$C_{sh2}$,font=\boldmath] (16,-0.5) node[ground]{};
+      % ampli
+      % BOX
+      \draw[black, dashed] (17.2,-3) rectangle (22.5,4.5)
+        (18.5,-3) node[above]{Amplificatore};
+
+      \draw(20,-0.5) node[op amp] (OA3){$OA_{3}$}
+        (OA3.+)-- (17.5,-1)-- (17.5,1.5)-- (16,1.5)
+        (OA3.-)-- (18.5,0)-- (18.5,1.5) to[R,l=$R_{a2}$,font=\boldmath] (21,1.5)-- (21,-0.5)
+        (18.5,1.5) to[R,l=$R_{a1}$,font=\boldmath] (18.5,3)
+        (18.5,3) node[ground, yscale=-1]{}
+        (OA3.out) to[short,-*,l=$V_{out}$,font=\boldmath] (22,-0.5);
+
+    \end{circuitikz}
+    \caption{\footnotesize Schema a variabile concentrate della catena elettronica completa.}
+\end{figure}\label{fig:circ_tot}
+
+	%------------------------------------------------
+	%	Apparato Sperimentale
+	%------------------------------------------------
+
+    % TODO: specifica sigma_k oscilloscopio
+
+\section{Apparato Sperimentale}
+Gli strumenti che si utilizzano nel corso dell'esperienza sono i seguenti:
+\begin{itemize}
+	\item Multimetro digitale Tenma 72-13430
+  	\item Oscilloscopio Picoscope 2204A con due sonde di compensazione e con un generatore di funzioni incorporato
+  \item Due circuiti integrati TL082 contenenti due amplificatori operazionali
+        ciascuno
+	\item Breadboard con scheda di alimenatazione $-12/0/12\, \si{\volt}$
+	\item Resistori e condensatori di diversa taglia
+\end{itemize}
+
+\input{../preamp/preamp}
+\input{../shaper/shaper}
+\input{../ampli/ampli}
+
+\end{document}
